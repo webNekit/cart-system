@@ -81,7 +81,7 @@ class ProductResource extends Resource
 
             Select::make('type_product_id')
                 ->title('Тип тележки')
-                ->options(TypeProduct::where('is_active', 'on')->pluck('name', 'id'))
+                ->options(TypeProduct::where('is_active', true)->pluck('name', 'id'))
                 ->required(),
 
             CheckBox::make('is_active')
