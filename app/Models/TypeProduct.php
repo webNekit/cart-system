@@ -12,4 +12,7 @@ class TypeProduct extends Model
 {
     use HasFactory, AsSource, Filterable, Attachable;
     protected $fillable = ['name', 'is_active'];
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
 }

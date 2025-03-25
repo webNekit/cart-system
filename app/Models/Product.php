@@ -14,6 +14,10 @@ class Product extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
     public function typeProduct()
     {
         return $this->belongsTo(TypeProduct::class);
