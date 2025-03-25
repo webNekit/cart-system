@@ -56,6 +56,7 @@ class TypeProductResource extends Resource
                 ->title(__('Тип тележки'))
                 ->placeholder(__('Со стандартными вилами')),
             CheckBox::make('is_active')
+                ->sendTrueOrFalse()
                 ->title(__('Отображать в системе'))
                 ->default(1),
         ];
