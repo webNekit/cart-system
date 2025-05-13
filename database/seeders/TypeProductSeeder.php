@@ -13,10 +13,21 @@ class TypeProductSeeder extends Seeder
      */
     public function run(): void
     {
-        TypeProduct::insert([
-            ['name' => 'С длинными вилами', 'is_active' => true],
-            ['name' => 'С укороченными вилами', 'is_active' => true],
-            ['name' => 'Сверхмощная', 'is_active' => false],
-        ]);
+        $types = [
+            ['name' => 'Гидравлическая тележка', 'is_active' => true],
+            ['name' => 'Электротележка', 'is_active' => true],
+            ['name' => 'Рохля с весами', 'is_active' => true],
+            ['name' => 'Низкоподъемная тележка', 'is_active' => true],
+            ['name' => 'Высокоподъемная тележка', 'is_active' => true],
+            ['name' => 'Тележка с платформой', 'is_active' => true],
+            ['name' => 'Тележка для бочек', 'is_active' => true],
+            ['name' => 'Тележка для контейнеров', 'is_active' => true],
+            ['name' => 'Тележка с подъемным механизмом', 'is_active' => true],
+            ['name' => 'Специальная тележка', 'is_active' => true],
+        ];
+
+        foreach ($types as $type) {
+            TypeProduct::create($type);
+        }
     }
 }
