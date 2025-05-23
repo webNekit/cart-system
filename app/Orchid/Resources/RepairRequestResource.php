@@ -218,4 +218,9 @@ class RepairRequestResource extends Resource
             new StatusRepairFilter(),
         ];
     }
+
+    public static function permission(): ?string
+    {
+        return 'platform.repairs';
+    }
 }

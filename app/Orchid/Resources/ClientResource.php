@@ -10,7 +10,7 @@ use Orchid\Screen\TD;
 class ClientResource extends Resource
 {
     /**
-     * The model the resource corresponds to.
+     * Модель, соответствующая ресурсу.
      *
      * @var string
      */
@@ -18,9 +18,8 @@ class ClientResource extends Resource
 
     public static function icon(): string
     {
-        return 'bs.people'; // Здесь укажи нужный класс иконки
+        return 'bs.people';
     }
-
 
     public static function label(): string
     {
@@ -43,7 +42,7 @@ class ClientResource extends Resource
     }
 
     /**
-     * Get the fields displayed by the resource.
+     * Определяет, какие поля отображаются при создании и редактировании.
      *
      * @return array
      */
@@ -73,7 +72,7 @@ class ClientResource extends Resource
     }
 
     /**
-     * Get the columns displayed by the resource.
+     * Определяет колонки таблицы в списке.
      *
      * @return TD[]
      */
@@ -88,7 +87,7 @@ class ClientResource extends Resource
     }
 
     /**
-     * Get the sights displayed by the resource.
+     * Отображение полей в режиме просмотра (легенды).
      *
      * @return Sight[]
      */
@@ -102,7 +101,7 @@ class ClientResource extends Resource
     }
 
     /**
-     * Get the filters available for the resource.
+     * Фильтры (если нужны).
      *
      * @return array
      */
@@ -110,4 +109,15 @@ class ClientResource extends Resource
     {
         return [];
     }
+
+    /**
+     * Ограничения доступа на основе разрешений.
+     *
+     * @return iterable|null
+     */
+    public static function permission(): ?string
+    {
+        return 'platform.clients';
+    }
+
 }

@@ -145,4 +145,9 @@ class ProductResource extends Resource
             new ProductFilter(),
         ];
     }
+
+    public static function permission(): ?string
+    {
+        return 'platform.products';
+    }
 }

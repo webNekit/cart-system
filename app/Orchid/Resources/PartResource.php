@@ -127,4 +127,9 @@ class PartResource extends Resource
             new PartFilter(),
         ];
     }
+
+    public static function permission(): ?string
+    {
+        return 'platform.parts';
+    }
 }

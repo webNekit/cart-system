@@ -111,4 +111,9 @@ class TypeProductResource extends Resource
             new TypeProductFilter(),
         ];
     }
+
+    public static function permission(): ?string
+    {
+        return 'platform.typeproducts';
+    }
 }
