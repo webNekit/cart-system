@@ -321,4 +321,8 @@ return [
 
     'provider' => \App\Orchid\PlatformProvider::class,
 
+//    'resources' => [
+//        \App\Orchid\Resources\UserRepairRequestResource::class,
+//    ],
+
 ];

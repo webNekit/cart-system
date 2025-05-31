@@ -118,6 +118,8 @@ class PlatformProvider extends OrchidServiceProvider
                 ->addPermission('platform.typeproducts', 'Доступ к типам рохлей')
                 ->addPermission('platform.parts', 'Доступ к запчастям')
                 ->addPermission('platform.perairs', 'Доступ к заявкам'),
+            ItemPermission::group('Заявки от пользователей')
+                ->addPermission('platform.user.repairs.request', 'Мои заявки на ремонт'),
         ];
     }
 

@@ -5,6 +5,7 @@ namespace App\Models;
 use Orchid\Filters\Types\Like;
 use Orchid\Filters\Types\Where;
 use Orchid\Filters\Types\WhereDateStartEnd;
+use Orchid\Platform\Models\Role;
 use Orchid\Platform\Models\User as Authenticatable;
 
 class User extends Authenticatable
@@ -53,6 +54,18 @@ class User extends Authenticatable
            'updated_at' => WhereDateStartEnd::class,
            'created_at' => WhereDateStartEnd::class,
     ];
+
+
+    public function repairRequests()
+    {
+        return $this->hasMany(UserRepairRequest::class);
+    }
+
+    public function hasRole(string $slug): bool
+    {
+        return $this->roles()->where('slug', $slug)->exists();
+    }
+
 
     /**
      * The attributes for which can use sort in url.

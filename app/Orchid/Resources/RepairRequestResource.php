@@ -2,107 +2,117 @@
 
 namespace App\Orchid\Resources;
 
-use App\Models\Client;
 use App\Models\Part;
 use App\Models\Product;
 use App\Models\RepairRequest;
-use App\Orchid\Filters\StatusRepairFilter;
+use Illuminate\Support\Facades\Auth;
 use Orchid\Crud\Resource;
 use Orchid\Screen\Fields\DateTimer;
+use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Fields\TextArea;
 use Orchid\Screen\Sight;
 use Orchid\Screen\TD;
+use App\Orchid\Filters\StatusRepairFilter;
 
 class RepairRequestResource extends Resource
 {
-    /**
-     * Модель, с которой связан ресурс.
-     */
     public static $model = RepairRequest::class;
 
-    /**
-     * Иконка ресурса в меню.
-     */
     public static function icon(): string
     {
         return 'bs.basket';
     }
 
-    /**
-     * Название ресурса в интерфейсе.
-     */
     public static function label(): string
     {
         return 'Заявки на ремонт';
     }
 
-    /**
-     * Подпись для кнопки создания.
-     */
     public static function createButtonLabel(): string
     {
         return 'Создать новую заявку';
     }
 
-    /**
-     * Подпись для кнопки сохранения.
-     */
     public static function updateButtonLabel(): string
     {
         return 'Сохранить изменения';
     }
 
-    /**
-     * Подпись для кнопки удаления.
-     */
     public static function deleteButtonLabel(): string
     {
         return 'Удалить заявку';
     }
 
-    /**
-     * Поля для создания и редактирования заявки.
-     */
+    public static function permission(): ?string
+    {
+        return 'platform.repairs';
+    }
+
+    public function with(): array
+    {
+        return ['product', 'part', 'user'];
+    }
+
     public function fields(): array
     {
-        return [
-            Select::make('product_id')
-                ->fromModel(Product::class, 'name')  // Выбираем активные продукты
-                ->title('Выберите продукт')
-                ->required()
-                ->help('Выберите активный продукт')
-                ->applyScope('active'),  // Применяем scope для фильтрации
+        $user = Auth::user();
 
-            Select::make('client_id')
-                ->fromModel(Client::class, 'name')
-                ->title('Выберите клиента')
+        if ($user->inRole('user')) {
+            return [
+                Input::make('user_id')->type('hidden')->value($user->id)->hidden(),
+
+                Select::make('product_id')
+                    ->fromModel(Product::class, 'name')
+                    ->title('Выберите продукт')
+                    ->required()
+                    ->applyScope('active'),
+
+                TextArea::make('note')
+                    ->title('Примечание')
+                    ->rows(3)
+                    ->placeholder('Введите примечание при необходимости'),
+            ];
+        }
+
+        return [
+            Input::make('user.name')->disabled()->title('Клиент'),
+
+            Select::make('product_id')
+                ->fromModel(Product::class, 'name')
+                ->title('Продукт')
                 ->required()
-                ->help('Выберите клиента для заявки'),
+                ->disabled()
+                ->applyScope('active'),
 
             Select::make('part_id')
-                ->title('Запчасти')
+                ->title('Запчасть')
                 ->options(function () {
                     return Part::where('is_active', true)
                         ->get()
                         ->mapWithKeys(function ($part) {
-                            $quantityText = $part->quantity > 0
+                            $label = $part->quantity > 0
                                 ? "{$part->name} ({$part->quantity} шт.)"
                                 : "{$part->name} (Закончились)";
-                            return [$part->id => $quantityText];
+                            return [$part->id => $label];
                         });
                 })
-                ->required()
-                ->help('Выберите запчасть для ремонта'),
+                ->required(),
 
             Select::make('status')
-                ->title('Статус заявки')
+                ->title('Статус')
                 ->options([
-                    'in_progress' => 'В процессе',
-                    'completed' => 'Завершено',
-                    'pending' => 'В ожидании',
+                    'in_progress' => '🟡 В процессе',
+                    'completed' => '✅ Завершено',
+                    'pending' => '⏳ В ожидании',
                 ])
                 ->required(),
+
+            Input::make('price')
+                ->title('Цена ремонта')
+                ->type('number')
+                ->step(0.01)
+                ->placeholder('Введите цену в рублях'),
 
             DateTimer::make('repair_start_date')
                 ->title('Дата начала ремонта')
@@ -119,21 +129,19 @@ class RepairRequestResource extends Resource
         ];
     }
 
-    /**
-     * Колонки для отображения заявок в таблице.
-     */
     public function columns(): array
     {
         return [
             TD::make('id', 'ID')->sort(),
+
             TD::make('product.name', 'Продукт')
                 ->render(fn($model) => $model->product?->name ?? 'Не указано'),
 
             TD::make('part.name', 'Запчасть')
                 ->render(fn($model) => $model->part?->name ?? 'Не указано'),
 
-            TD::make('client.name', 'Клиент')
-                ->render(fn($model) => $model->client?->name ?? 'Не указано'),
+            TD::make('user.name', 'Заказчик')
+                ->render(fn($model) => $model->user?->name ?? 'Не указан'),
 
             TD::make('status', 'Статус')
                 ->render(fn($model) => match ($model->status) {
@@ -142,76 +150,51 @@ class RepairRequestResource extends Resource
                     'pending' => '⏳ В ожидании',
                 }),
 
-            TD::make('repair_start_date', 'Начало ремонта')
-                ->sort()
-                ->render(fn($model) => $model->repair_start_date->format('Y-m-d H:i')),
+            TD::make('price', 'Цена')
+                ->render(fn($model) => $model->price ? number_format($model->price, 2) . ' ₽' : '—'),
 
-            TD::make('repair_end_date', 'Завершение ремонта')
-                ->sort()
-                ->render(fn($model) => $model->repair_end_date->format('Y-m-d H:i')),
+            TD::make('repair_start_date', 'Начало ремонта')
+                ->render(fn($model) => optional($model->repair_start_date)->format('Y-m-d')),
+
+            TD::make('repair_end_date', 'Окончание ремонта')
+                ->render(fn($model) => optional($model->repair_end_date)->format('Y-m-d')),
         ];
     }
-
-    /**
-     * Детальный просмотр заявки.
-     */
 
     public function legend(): array
     {
         return [
-            Sight::make('product.name', 'Продукт')
-                ->render(function ($repairRequest) {
-                    return $repairRequest->product->name ?? 'Не выбран';
-                }),
-
-            Sight::make('part.name', 'Запчасть')
-                ->render(function ($repairRequest) {
-                    return $repairRequest->part->name ?? 'Не выбрана';
-                }),
-
-            Sight::make('client.name', 'Клиент')
-                ->render(function ($repairRequest) {
-                    return $repairRequest->client->name ?? 'Не выбран';
-                }),
+            Sight::make('product.name', 'Продукт'),
+            Sight::make('part.name', 'Запчасть'),
+            Sight::make('user.name', 'Клиент'),
 
             Sight::make('status', 'Статус')
-                ->render(function ($repairRequest) {
-                    return match ($repairRequest->status) {
-                        'in_progress' => '🟡 В процессе',
-                        'completed' => '✅ Завершено',
-                        'pending' => '⏳ В ожидании',
-                    };
+                ->render(fn($req) => match ($req->status) {
+                    'in_progress' => '🟡 В процессе',
+                    'completed' => '✅ Завершено',
+                    'pending' => '⏳ В ожидании',
                 }),
+
+            Sight::make('price', 'Цена ремонта')
+                ->render(fn($req) => $req->price ? number_format($req->price, 2) . ' ₽' : '—'),
 
             Sight::make('repair_start_date', 'Дата начала ремонта')
-                ->render(function ($repairRequest) {
-                    return $repairRequest->repair_start_date ? $repairRequest->repair_start_date->format('d.m.Y') : 'Не указана';
-                }),
+                ->render(fn($req) => optional($req->repair_start_date)->format('d.m.Y')),
 
             Sight::make('repair_end_date', 'Дата окончания ремонта')
-                ->render(function ($repairRequest) {
-                    $repairEndDate = $repairRequest->repair_end_date ? $repairRequest->repair_end_date->format('d.m.Y') : 'Не указана';
-
-                    // Проверяем, если дата завершения ремонта просрочена
-                    if ($repairRequest->repair_end_date && $repairRequest->repair_end_date->isBefore(now())) {
-                        $overdueDays = $repairRequest->repair_end_date->diffInDays(now());  // Количество дней просрочки
-
-                        // Округляем количество дней до целого числа
-                        return "<span style='color: red;'>$repairEndDate (Просрочено на " . floor($overdueDays) . " дней)</span>";
+                ->render(function ($req) {
+                    $date = optional($req->repair_end_date)->format('d.m.Y');
+                    if ($req->repair_end_date && $req->repair_end_date->isPast()) {
+                        $overdue = $req->repair_end_date->diffInDays(now());
+                        return "<span style='color:red;'>$date (Просрочено на $overdue дней)</span>";
                     }
-
-                    return $repairEndDate;
+                    return $date;
                 }),
 
-            Sight::make('note', 'Примечание')
-                ->render(function ($repairRequest) {
-                    return $repairRequest->note ?? 'Нет примечаний';
-                }),
+            Sight::make('note', 'Примечание'),
         ];
     }
-    /**
-     * Фильтры для ресурса.
-     */
+
     public function filters(): array
     {
         return [
@@ -219,8 +202,17 @@ class RepairRequestResource extends Resource
         ];
     }
 
-    public static function permission(): ?string
+    public function onSave($request, $model)
     {
-        return 'platform.repairs';
+        if (Auth::user()->inRole('user')) {
+            $model->user_id = Auth::id();
+        }
+
+        $model->fill($request->all())->save();
+    }
+
+    public function canCreate(): bool
+    {
+        return Auth::user()->inRole('user');
     }
 }
