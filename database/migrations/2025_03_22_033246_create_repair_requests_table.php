@@ -19,6 +19,8 @@ return new class extends Migration
             // Сделать part_id необязательным
             $table->foreignId('part_id')->nullable()->constrained('parts')->onDelete('cascade');
 
+            $table->string('phone')->nullable();
+
             // Статус по умолчанию
             $table->enum('status', ['in_progress', 'completed', 'pending'])->default('in_progress');
 

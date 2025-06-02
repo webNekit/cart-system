@@ -61,7 +61,7 @@ class RepairRequestResource extends Resource
         if ($user->inRole('user')) {
             return [
                 Input::make('user_id')->type('hidden')->value($user->id)->hidden(),
-
+                Input::make('phone')->title('Телефон для связи'),
                 Select::make('product_id')
                     ->fromModel(Product::class, 'name')
                     ->title('Выберите продукт')
@@ -77,6 +77,7 @@ class RepairRequestResource extends Resource
 
         return [
             Input::make('user.name')->disabled()->title('Клиент'),
+            Input::make('phone')->title('Телефон для связи'),
 
             Select::make('product_id')
                 ->fromModel(Product::class, 'name')
@@ -167,6 +168,7 @@ class RepairRequestResource extends Resource
             Sight::make('product.name', 'Продукт'),
             Sight::make('part.name', 'Запчасть'),
             Sight::make('user.name', 'Клиент'),
+            Sight::make('phone', 'Телефон для связи'),
 
             Sight::make('status', 'Статус')
                 ->render(fn($req) => match ($req->status) {

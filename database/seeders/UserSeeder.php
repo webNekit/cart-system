@@ -39,6 +39,14 @@ class UserSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            [
+                'name' => 'Иванов И.И.',
+                'email' => 'user@example.com',
+                'password' => Hash::make('password'), // Рекомендуется изменить пароль после создания
+                'email_verified_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ];
 
         DB::table('users')->insert($users);
